@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Phone, ArrowUpRight, Menu, X } from 'lucide-react';
+import { Phone, Gauge, ChevronRight, Menu, X, ShieldAlert } from 'lucide-react';
 
 interface NavbarProps {
   onOpenConcierge: () => void;
@@ -19,131 +19,134 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenConcierge }) => {
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled
-          ? 'bg-[#08090b]/90 backdrop-blur-md py-4 border-b border-[#d4af37]/20 shadow-2xl'
-          : 'bg-gradient-to-b from-[#08090b]/80 to-transparent py-6'
+          ? 'bg-[#050507]/95 backdrop-blur-md py-3 border-b border-neutral-800/80 shadow-2xl'
+          : 'bg-gradient-to-b from-[#050507]/90 to-transparent py-4'
       }`}
     >
-      <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
-        {/* Brand Identity */}
-        <a href="#" className="flex items-center gap-3 group">
-          <div className="w-10 h-10 rounded-full border border-[#d4af37]/40 bg-[#12161f] flex items-center justify-center group-hover:border-[#d4af37] transition-all">
-            <span className="text-[#d4af37] font-display font-bold text-lg">P</span>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between">
+          {/* Logo / Brand */}
+          <a href="#" className="flex items-center gap-3 group">
+            <div className="w-10 h-10 bg-rose-950/40 border border-rose-600/40 flex items-center justify-center text-rose-500 skew-badge group-hover:border-rose-500 transition-colors">
+              <Gauge className="w-5 h-5 unskew" />
+            </div>
+            <div className="flex flex-col">
+              <span className="font-mono text-xl tracking-[0.15em] uppercase font-black text-white group-hover:text-rose-400 transition-colors">
+                PALOMINO
+              </span>
+              <span className="font-mono text-[9px] tracking-[0.3em] text-rose-500 uppercase -mt-1 font-bold">
+                MOTORS // DALLAS EXOTICS
+              </span>
+            </div>
+          </a>
+
+          {/* Desktop Nav Links */}
+          <div className="hidden lg:flex items-center gap-8 font-mono text-xs uppercase tracking-wider text-neutral-300 font-semibold">
+            <a href="#telemetry-tour" className="hover:text-rose-400 transition-colors flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 bg-rose-500 rounded-full animate-ping" />
+              <span>360° Showroom</span>
+            </a>
+            <a href="#showroom" className="hover:text-rose-400 transition-colors">
+              Current Inventory
+            </a>
+            <a href="#performance" className="hover:text-rose-400 transition-colors">
+              Chassis Vetting
+            </a>
+            <a href="#provenance" className="hover:text-rose-400 transition-colors">
+              Provenance
+            </a>
           </div>
-          <div>
-            <span className="font-display font-bold tracking-widest text-lg md:text-xl text-[#f2f4f8] block group-hover:text-[#d4af37] transition-colors">
-              PALOMINO MOTORS
-            </span>
-            <span className="text-[10px] tracking-[0.25em] text-[#a0aec0] uppercase block">
-              Dallas Exotic Vault
-            </span>
+
+          {/* Right Action Bar */}
+          <div className="hidden sm:flex items-center gap-4">
+            <a
+              href="tel:2148790111"
+              className="flex items-center gap-2 font-mono text-xs text-neutral-400 hover:text-white transition-colors"
+            >
+              <Phone className="w-3.5 h-3.5 text-rose-500" />
+              <span>214-879-0111</span>
+            </a>
+
+            <button
+              onClick={onOpenConcierge}
+              className="skew-badge px-6 py-2.5 bg-rose-600 hover:bg-rose-500 text-white font-mono text-xs font-bold uppercase tracking-wider transition-all shadow-lg racing-red-glow flex items-center gap-1.5"
+            >
+              <span className="unskew flex items-center gap-1">
+                <span>Acquire Vehicle</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </span>
+            </button>
           </div>
-        </a>
 
-        {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center gap-8">
-          <a
-            href="#showroom"
-            className="text-xs tracking-[0.2em] uppercase text-[#cfd7e6] hover:text-[#d4af37] transition-colors"
-          >
-            Showroom
-          </a>
-          <a
-            href="#provenance"
-            className="text-xs tracking-[0.2em] uppercase text-[#cfd7e6] hover:text-[#d4af37] transition-colors"
-          >
-            Provenance
-          </a>
-          <a
-            href="#clients"
-            className="text-xs tracking-[0.2em] uppercase text-[#cfd7e6] hover:text-[#d4af37] transition-colors"
-          >
-            Client Stories
-          </a>
-          <a
-            href="#contact"
-            className="text-xs tracking-[0.2em] uppercase text-[#cfd7e6] hover:text-[#d4af37] transition-colors"
-          >
-            Pavilion
-          </a>
+          {/* Mobile hamburger */}
+          <div className="lg:hidden flex items-center gap-3">
+            <button
+              onClick={onOpenConcierge}
+              className="sm:hidden px-3 py-1.5 bg-rose-600 text-white font-mono font-bold text-[10px] tracking-wider uppercase"
+            >
+              Acquire
+            </button>
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="p-2 bg-neutral-900 border border-neutral-800 text-neutral-300 hover:text-white"
+            >
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+          </div>
         </div>
-
-        {/* Action Controls */}
-        <div className="hidden lg:flex items-center gap-4">
-          <a
-            href="tel:+12148790111"
-            className="flex items-center gap-2 px-4 py-2 rounded-full border border-[#2a3242] bg-[#10141d]/70 text-[#e2e8f0] hover:border-[#d4af37]/50 text-xs tracking-wider transition-all"
-          >
-            <Phone className="w-3.5 h-3.5 text-[#d4af37]" />
-            <span>(214) 879-0111</span>
-          </a>
-          <button
-            onClick={onOpenConcierge}
-            className="glass-button px-6 py-2.5 rounded-full text-xs tracking-[0.18em] uppercase font-semibold text-[#f2f4f8] flex items-center gap-2 shadow-lg"
-          >
-            <span>Private Viewing</span>
-            <ArrowUpRight className="w-3.5 h-3.5 text-[#d4af37]" />
-          </button>
-        </div>
-
-        {/* Mobile Hamburger Toggle */}
-        <button
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="md:hidden p-2 text-[#d4af37] focus:outline-none"
-          aria-label="Toggle Navigation Menu"
-        >
-          {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-        </button>
       </div>
 
-      {/* Mobile Drawer */}
+      {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-[#0a0d13] border-b border-[#d4af37]/30 px-6 py-6 flex flex-col gap-4 animate-in slide-in-from-top">
-          <a
-            href="#showroom"
-            onClick={() => setMobileMenuOpen(false)}
-            className="text-sm tracking-wider uppercase text-[#f2f4f8] py-2 border-b border-[#1b2230]"
-          >
-            Showroom Inventory
-          </a>
-          <a
-            href="#provenance"
-            onClick={() => setMobileMenuOpen(false)}
-            className="text-sm tracking-wider uppercase text-[#f2f4f8] py-2 border-b border-[#1b2230]"
-          >
-            Provenance & Standards
-          </a>
-          <a
-            href="#clients"
-            onClick={() => setMobileMenuOpen(false)}
-            className="text-sm tracking-wider uppercase text-[#f2f4f8] py-2 border-b border-[#1b2230]"
-          >
-            Client Testimonials
-          </a>
-          <a
-            href="#contact"
-            onClick={() => setMobileMenuOpen(false)}
-            className="text-sm tracking-wider uppercase text-[#f2f4f8] py-2 border-b border-[#1b2230]"
-          >
-            Dallas Location
-          </a>
-          <div className="pt-2 flex flex-col gap-3">
+        <div className="lg:hidden bg-[#09090b]/98 border-b border-neutral-800 px-6 py-6 space-y-4 font-mono">
+          <div className="flex flex-col space-y-3 text-xs uppercase tracking-wider text-neutral-300 font-semibold">
             <a
-              href="tel:+12148790111"
-              className="flex items-center justify-center gap-2 py-3 rounded-xl border border-[#d4af37]/30 bg-[#121722] text-[#f2f4f8] text-sm"
+              href="#telemetry-tour"
+              onClick={() => setMobileMenuOpen(false)}
+              className="hover:text-rose-400 transition-colors flex items-center gap-2"
             >
-              <Phone className="w-4 h-4 text-[#d4af37]" />
-              <span>(214) 879-0111</span>
+              <span className="w-2 h-2 bg-rose-500 rounded-full" />
+              <span>360° Showroom Tour</span>
             </a>
+            <a
+              href="#showroom"
+              onClick={() => setMobileMenuOpen(false)}
+              className="hover:text-rose-400 transition-colors"
+            >
+              Current Inventory Vault
+            </a>
+            <a
+              href="#performance"
+              onClick={() => setMobileMenuOpen(false)}
+              className="hover:text-rose-400 transition-colors"
+            >
+              Chassis Inspection Protocols
+            </a>
+            <a
+              href="#provenance"
+              onClick={() => setMobileMenuOpen(false)}
+              className="hover:text-rose-400 transition-colors"
+            >
+              30-Year Provenance
+            </a>
+          </div>
+
+          <div className="pt-4 border-t border-neutral-800 flex flex-col gap-3">
+            <div className="flex items-center gap-2 text-xs text-neutral-400">
+              <ShieldAlert className="w-4 h-4 text-rose-500" />
+              <span>Dallas Showroom: 214-879-0111</span>
+            </div>
+
             <button
               onClick={() => {
                 setMobileMenuOpen(false);
                 onOpenConcierge();
               }}
-              className="glass-button py-3 rounded-xl text-center text-xs tracking-widest uppercase font-semibold text-[#f2f4f8]"
+              className="w-full py-3 bg-rose-600 hover:bg-rose-500 text-white font-mono font-bold text-xs tracking-widest uppercase shadow-lg racing-red-glow"
             >
-              Schedule Private Viewing
+              Request Private Showing
             </button>
           </div>
         </div>

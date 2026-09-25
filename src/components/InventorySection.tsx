@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { INVENTORY_DATA } from '../data/inventory';
 import type { Vehicle } from '../data/inventory';
-import { Gauge, Zap, ArrowRight } from 'lucide-react';
+import { Gauge, Zap, ChevronRight, CheckCircle2 } from 'lucide-react';
 
 interface InventorySectionProps {
   onSelectVehicle: (v: Vehicle) => void;
@@ -17,127 +17,112 @@ export const InventorySection: React.FC<InventorySectionProps> = ({ onSelectVehi
     : INVENTORY_DATA.filter(v => v.make === selectedMake);
 
   return (
-    <section id="showroom" className="relative py-28 bg-[#0a0d14] border-t border-[#1b2230]">
-      <div className="max-w-7xl mx-auto px-6">
+    <section id="showroom" className="relative py-28 bg-[#050507] border-t border-neutral-800 carbon-grid">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
           <div>
-            <span className="text-xs uppercase tracking-[0.25em] text-[#d4af37] font-semibold block mb-2">
-              Dallas Showroom Collection
-            </span>
-            <h2 className="font-display text-3xl sm:text-5xl font-bold tracking-tight text-[#f2f4f8]">
-              Current Exotic Inventory
+            <div className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-rose-500 font-bold mb-2">
+              <span className="w-2 h-2 bg-rose-500" />
+              <span>Dallas Vault Showroom // Verified Units</span>
+            </div>
+            <h2 className="font-mono text-3xl sm:text-5xl font-black tracking-tight text-white uppercase">
+              Current Supercar Inventory
             </h2>
-            <p className="text-sm text-[#94a3b8] mt-2 max-w-xl">
-              Each vehicle in our private vault is individually titled, physical on-site in Dallas, and backed by a comprehensive provenance report.
+            <p className="font-mono text-xs sm:text-sm text-neutral-400 mt-2 max-w-xl leading-relaxed">
+              Every chassis physically inspected on-site in Dallas, Texas. Clean titles, original paint meters verified, clean CARFAX.
             </p>
           </div>
 
           {/* Brand Filter Tabs */}
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1.5 font-mono">
             {makes.map(make => (
               <button
                 key={make}
                 onClick={() => setSelectedMake(make)}
-                className={`px-4 py-2 rounded-full text-xs tracking-wider transition-all ${
+                className={`px-3.5 py-1.5 text-xs uppercase font-bold tracking-wider transition-all skew-badge ${
                   selectedMake === make
-                    ? 'bg-[#d4af37] text-[#08090b] font-bold shadow-md'
-                    : 'border border-[#222b3d] bg-[#121620] text-[#94a3b8] hover:border-[#d4af37]/40 hover:text-[#f2f4f8]'
+                    ? 'bg-rose-600 text-white racing-red-glow'
+                    : 'bg-neutral-900 border border-neutral-800 text-neutral-400 hover:text-white hover:border-neutral-700'
                 }`}
               >
-                {make}
+                <span className="unskew">{make}</span>
               </button>
             ))}
           </div>
         </div>
 
         {/* Inventory Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredVehicles.map((vehicle) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredVehicles.map((vehicle: Vehicle) => (
             <div
               key={vehicle.id}
-              className="group glass-panel rounded-2xl overflow-hidden border border-[#222b3d] hover:border-[#d4af37]/50 transition-all duration-300 flex flex-col justify-between"
+              className="group bg-[#09090b] border border-neutral-800 hover:border-rose-500 transition-all duration-300 flex flex-col justify-between"
             >
-              {/* Image & Badges */}
-              <div className="relative aspect-[16/10] overflow-hidden bg-[#121620]">
-                <img
-                  src={vehicle.image}
-                  alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  loading="lazy"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0a0d14] via-transparent to-transparent opacity-80" />
-                
-                <div className="absolute top-4 left-4 flex gap-2">
-                  <span className="px-3 py-1 rounded-full text-[10px] font-semibold tracking-wider uppercase bg-[#08090b]/80 backdrop-blur-md text-[#d4af37] border border-[#d4af37]/30">
+              <div>
+                <div className="relative aspect-[16/10] overflow-hidden bg-black">
+                  <img
+                    src={vehicle.image}
+                    alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#09090b] via-transparent to-black/30" />
+                  <span className="absolute top-3 left-3 bg-neutral-950/90 border border-neutral-700 px-2.5 py-1 font-mono text-[10px] font-bold text-white uppercase tracking-wider">
                     {vehicle.year} {vehicle.make}
                   </span>
-                </div>
-
-                <div className="absolute top-4 right-4">
-                  <span className="px-3 py-1 rounded-full text-[10px] font-semibold tracking-wider uppercase bg-emerald-950/80 text-emerald-400 border border-emerald-500/30">
-                    {vehicle.status}
-                  </span>
-                </div>
-
-                <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end">
-                  <span className="text-2xl font-bold font-display text-[#f2f4f8]">
+                  <span className="absolute bottom-3 right-3 bg-rose-600 px-3 py-1 font-mono text-xs font-black text-white uppercase tracking-wider racing-red-glow">
                     {vehicle.price}
                   </span>
-                  <span className="text-xs text-[#a0aec0] font-mono">
-                    {vehicle.mileage}
-                  </span>
                 </div>
-              </div>
 
-              {/* Vehicle Body Info */}
-              <div className="p-6 flex-1 flex flex-col justify-between">
-                <div>
-                  <h3 className="font-display text-lg font-bold text-[#f2f4f8] group-hover:text-[#d4af37] transition-colors">
-                    {vehicle.model}
+                <div className="p-6">
+                  <h3 className="font-mono text-lg font-black text-white group-hover:text-rose-400 transition-colors uppercase">
+                    {vehicle.make} {vehicle.model}
                   </h3>
-                  <p className="text-xs text-[#94a3b8] mt-2 line-clamp-2 leading-relaxed">
-                    {vehicle.description}
-                  </p>
 
-                  {/* Mechanical Specs Badges */}
-                  <div className="grid grid-cols-2 gap-3 mt-4 pt-4 border-t border-[#1b2230]">
-                    <div className="flex items-center gap-2 text-xs text-[#cbd5e1]">
-                      <Zap className="w-3.5 h-3.5 text-[#d4af37]" />
-                      <span>{vehicle.horsepower}</span>
+                  <div className="grid grid-cols-3 gap-2 mt-4 pt-4 border-t border-neutral-800 font-mono text-center">
+                    <div className="bg-neutral-950 p-2 border border-neutral-800/80">
+                      <span className="block text-[9px] text-neutral-400 uppercase">Power</span>
+                      <span className="text-xs font-bold text-white flex items-center justify-center gap-1 mt-0.5">
+                        <Zap className="w-3 h-3 text-rose-500" />
+                        {vehicle.horsepower}
+                      </span>
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-[#cbd5e1]">
-                      <Gauge className="w-3.5 h-3.5 text-[#d4af37]" />
-                      <span>{vehicle.acceleration}</span>
+                    <div className="bg-neutral-950 p-2 border border-neutral-800/80">
+                      <span className="block text-[9px] text-neutral-400 uppercase">0-60 MPH</span>
+                      <span className="text-xs font-bold text-white flex items-center justify-center gap-1 mt-0.5">
+                        <Gauge className="w-3 h-3 text-rose-500" />
+                        {vehicle.acceleration}
+                      </span>
+                    </div>
+                    <div className="bg-neutral-950 p-2 border border-neutral-800/80">
+                      <span className="block text-[9px] text-neutral-400 uppercase">Mileage</span>
+                      <span className="text-xs font-bold text-rose-400 mt-0.5 block">
+                        {vehicle.mileage}
+                      </span>
                     </div>
                   </div>
 
-                  {/* Highlights Tags */}
-                  <div className="flex flex-wrap gap-1.5 mt-4">
-                    {vehicle.tags.map(tag => (
-                      <span
-                        key={tag}
-                        className="px-2.5 py-0.5 rounded text-[10px] text-[#94a3b8] bg-[#121622] border border-[#232b3b]"
-                      >
-                        {tag}
-                      </span>
+                  <div className="mt-4 space-y-1.5 font-mono text-xs text-neutral-300">
+                    {vehicle.tags.slice(0, 2).map((h: string, i: number) => (
+                      <div key={i} className="flex items-center gap-2 text-[11px]">
+                        <CheckCircle2 className="w-3 h-3 text-rose-500 shrink-0" />
+                        <span className="truncate">{h}</span>
+                      </div>
                     ))}
                   </div>
                 </div>
+              </div>
 
-                {/* Card CTA Action */}
-                <div className="mt-6 pt-4 border-t border-[#1b2230] flex items-center justify-between">
-                  <span className="text-[10px] font-mono text-[#64748b]">
-                    VIN: {vehicle.vin}
-                  </span>
-                  <button
-                    onClick={() => onSelectVehicle(vehicle)}
-                    className="flex items-center gap-1.5 text-xs font-semibold text-[#d4af37] hover:text-[#f3cf7a] transition-colors"
-                  >
-                    <span>Inspect Vehicle</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
-                </div>
+              <div className="p-6 pt-0">
+                <button
+                  onClick={() => onSelectVehicle(vehicle)}
+                  className="w-full py-3 bg-neutral-900 hover:bg-rose-600 text-neutral-300 hover:text-white font-mono text-xs font-bold uppercase tracking-wider border border-neutral-800 hover:border-rose-500 transition-all flex items-center justify-center gap-2 group/btn"
+                >
+                  <span>Inspect Vehicle Telemetry</span>
+                  <ChevronRight className="w-3.5 h-3.5 transition-transform duration-300 group-hover/btn:translate-x-1" />
+                </button>
               </div>
             </div>
           ))}
