@@ -1,0 +1,3 @@
+file '/home/ubuntu/kontora-site10k/palomino-motors-3d/assets/clips/clip_01_to_02.mp4'
+file '/home/ubuntu/kontora-site10k/palomino-motors-3d/assets/clips/clip_02_to_03.mp4'
+file '/home/ubuntu/kontora-site10k/palomino-motors-3d/assets/clips/clip_03_to_04.mp4'

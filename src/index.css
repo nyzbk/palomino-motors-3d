@@ -1,0 +1,89 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background-color: #08090b;
+  color: #f2f4f8;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  overflow-x: clip;
+  width: 100%;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+.font-display {
+  font-family: 'Cinzel', Georgia, serif;
+}
+
+/* Luxury Automotive Glassmorphism */
+.glass-panel {
+  background: rgba(14, 17, 23, 0.78);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(212, 175, 55, 0.16);
+}
+
+.glass-panel-amber {
+  background: rgba(18, 22, 30, 0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.8), 0 0 25px rgba(212, 175, 55, 0.14);
+}
+
+.glass-button {
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.16) 0%, rgba(18, 22, 30, 0.7) 100%);
+  border: 1px solid rgba(212, 175, 55, 0.32);
+  backdrop-filter: blur(8px);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-button:hover {
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.38) 0%, rgba(24, 30, 42, 0.88) 100%);
+  border-color: #f3cf7a;
+  box-shadow: 0 0 22px rgba(212, 175, 55, 0.35);
+}
+
+@keyframes goldShimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.gold-gradient-text {
+  background: linear-gradient(90deg, #d4af37 0%, #fff2d1 25%, #f5d77f 50%, #aa8422 75%, #d4af37 100%);
+  background-size: 200% auto;
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: goldShimmer 8s linear infinite;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #08090b;
+}
+::-webkit-scrollbar-thumb {
+  background: #232a36;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #d4af37;
+}
