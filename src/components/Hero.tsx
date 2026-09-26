@@ -7,7 +7,7 @@ interface HeroProps {
 }
 
 export const Hero: React.FC<HeroProps> = ({
-  totalFrames = 180,
+  totalFrames = 60,
   onOpenConcierge
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -21,26 +21,44 @@ export const Hero: React.FC<HeroProps> = ({
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
 
   useEffect(() => {
-    let loaded = 0;
-    const imgs: HTMLImageElement[] = [];
+    const total = totalFrames;
+    const imgs: HTMLImageElement[] = new Array(total);
 
-    for (let i = 1; i <= totalFrames; i++) {
-      const img = new Image();
-      const frameStr = String(i).padStart(4, '0');
-      img.src = `/frames/frame_${frameStr}.jpg?v=palomino-motion-v1`;
-      img.onload = () => {
-        loaded++;
-        if (loaded >= Math.min(25, totalFrames)) {
-          setIsLoaded(true);
+    // 1. Immediately fetch Frame 1 (<100ms first paint)
+    const firstImg = new Image();
+    firstImg.src = `/frames/frame_0001.webp?v=fast-v2`;
+    firstImg.onload = () => {
+      imgs[0] = firstImg;
+      setIsLoaded(true);
+      renderFrame(1);
+
+      // 2. Progressive non-blocking preload for frames 2..total in small smooth batches
+      let nextIdx = 2;
+      const loadNextBatch = () => {
+        const batchSize = 6;
+        for (let b = 0; b < batchSize && nextIdx <= total; b++, nextIdx++) {
+          const idx = nextIdx;
+          const img = new Image();
+          const frameStr = String(idx).padStart(4, '0');
+          img.src = `/frames/frame_${frameStr}.webp?v=fast-v2`;
+          img.onload = () => {
+            if (currentFrameRef.current === idx) {
+              renderFrame(idx);
+            }
+          };
+          imgs[idx - 1] = img;
         }
-        if (i === 1) {
-          renderFrame(1);
+        if (nextIdx <= total) {
+          setTimeout(loadNextBatch, 15);
         }
       };
-      imgs.push(img);
-    }
-    imagesRef.current = imgs;
-  }, [totalFrames]);
+      loadNextBatch();
+    };
+    firstImg.onerror = () => {
+      setIsLoaded(true);
+    };
+    imgs[0] = firstImg;
+    imagesRef.current = imgs;}, [totalFrames]);
 
   const renderFrame = (frameIndex: number) => {
     const canvas = canvasRef.current;
@@ -48,7 +66,21 @@ export const Hero: React.FC<HeroProps> = ({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const img = imagesRef.current[frameIndex - 1];
+    let img = imagesRef.current[frameIndex - 1];
+    if (!img || !img.complete || img.naturalWidth === 0) {
+      for (let offset = 1; offset < totalFrames; offset++) {
+        const prev = imagesRef.current[frameIndex - 1 - offset];
+        if (prev && prev.complete && prev.naturalWidth > 0) {
+          img = prev;
+          break;
+        }
+        const next = imagesRef.current[frameIndex - 1 + offset];
+        if (next && next.complete && next.naturalWidth > 0) {
+          img = next;
+          break;
+        }
+      }
+    }
     if (img && img.complete) {
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       const w = canvas.clientWidth;

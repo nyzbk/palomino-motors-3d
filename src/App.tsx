@@ -27,7 +27,7 @@ export const App: React.FC = () => {
       <Navbar onOpenConcierge={handleOpenConcierge} />
       
       <main>
-        {/* Section #1: 180-frame Cinematic Walkthrough */}
+        {/* Section #1: 60-frame Cinematic Walkthrough */}
         <Hero onOpenConcierge={handleOpenConcierge} />
 
         {/* Section #2: Current Exotic Inventory Showroom */}
