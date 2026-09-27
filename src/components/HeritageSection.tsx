@@ -31,7 +31,7 @@ export const HeritageSection: React.FC = () => {
               150-Point Master Audit
             </h3>
             <p className="text-xs sm:text-sm text-[#94a3b8] leading-relaxed">
-              Every exotic undergoes computer telemetry diagnostics, paint-depth gauge inspection across every panel, and comprehensive undercarriage evaluation before entering our showroom.
+              Every exotic undergoes multi-point diagnostic certification, paint-depth gauge inspection across every panel, and comprehensive undercarriage evaluation before entering our showroom.
             </p>
           </div>
 

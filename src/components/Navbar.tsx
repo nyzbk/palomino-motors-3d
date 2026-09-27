@@ -44,7 +44,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenConcierge }) => {
 
           {/* Desktop Nav Links */}
           <div className="hidden lg:flex items-center gap-8 font-mono text-xs uppercase tracking-wider text-neutral-300 font-semibold">
-            <a href="#telemetry-tour" className="hover:text-rose-400 transition-colors flex items-center gap-1.5">
+            <a href="#inventory-tour" className="hover:text-rose-400 transition-colors flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 bg-rose-500 rounded-full animate-ping" />
               <span>360° Showroom</span>
             </a>
@@ -103,7 +103,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenConcierge }) => {
         <div className="lg:hidden bg-[#09090b]/98 border-b border-neutral-800 px-6 py-6 space-y-4 font-mono">
           <div className="flex flex-col space-y-3 text-xs uppercase tracking-wider text-neutral-300 font-semibold">
             <a
-              href="#telemetry-tour"
+              href="#inventory-tour"
               onClick={() => setMobileMenuOpen(false)}
               className="hover:text-rose-400 transition-colors flex items-center gap-2"
             >

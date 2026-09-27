@@ -12,7 +12,7 @@ export const SignatureWidget: React.FC<{ onOpenConsultation: () => void }> = ({ 
   };
 
   return (
-    <section id="dyno-telemetry" className="py-28 px-4 sm:px-6 lg:px-8 bg-[#0A0B0E] text-[#F2F5F8] relative">
+    <section id="powertrain-specs" className="py-28 px-4 sm:px-6 lg:px-8 bg-[#0A0B0E] text-[#F2F5F8] relative">
       <div className="max-w-5xl mx-auto">
         <div className="text-center mb-14">
           <span className="text-[11px] font-['JetBrains_Mono'] uppercase tracking-widest text-[#00F0FF] block mb-3 font-semibold">

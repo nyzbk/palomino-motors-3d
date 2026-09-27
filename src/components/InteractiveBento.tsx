@@ -11,7 +11,7 @@ export const InteractiveBento: React.FC<InteractiveBentoProps> = ({ onOpenConcie
   const [exhaust, setExhaust] = useState<'inconel' | 'titanium' | 'sport'>('inconel');
 
   return (
-    <section id="telemetry-capabilities" className="relative py-28 md:py-36 bg-[#0A0B0E] text-[#F2F5F8] overflow-hidden border-t border-[#00F0FF]/15">
+    <section id="performance-capabilities" className="relative py-28 md:py-36 bg-[#0A0B0E] text-[#F2F5F8] overflow-hidden border-t border-[#00F0FF]/15">
       {/* Ambient Radial Glow (Meta AI Standard) */}
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[650px] h-[650px] bg-[#00F0FF]/10 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-10 right-10 w-[450px] h-[450px] bg-[#FF3319]/25 rounded-full blur-[90px] pointer-events-none" />
@@ -22,10 +22,10 @@ export const InteractiveBento: React.FC<InteractiveBentoProps> = ({ onOpenConcie
           <div>
             <div className="text-[11px] font-mono tracking-[0.25em] text-[#00F0FF] uppercase mb-3 flex items-center gap-2">
               <Sparkles className="w-3.5 h-3.5 text-[#00F0FF]" />
-              DYNO TELEMETRY & SPECIFICATIONS / 03
+              ENGINE PERFORMANCE & CRAFT / 03
             </div>
             <h2 className="font-['Syncopate',sans-serif] text-[36px] md:text-[52px] font-bold leading-[0.95] text-[#F2F5F8]">
-              POWERTRAIN BENCHMARKS.
+              POWERTRAIN PERFORMANCE.
             </h2>
           </div>
           <p className="text-[14px] md:text-[15px] text-[#8A95A5] max-w-md font-['Space_Grotesk',sans-serif] leading-relaxed">
@@ -44,7 +44,7 @@ export const InteractiveBento: React.FC<InteractiveBentoProps> = ({ onOpenConcie
                   INTERACTIVE DYNO SIMULATOR
                 </span>
                 <span className="px-2.5 py-0.5 rounded-full bg-[#00F0FF]/20 text-[#00F0FF] text-[10px] font-mono font-bold animate-pulse">
-                  TELEMETRY ONLINE
+                  SPECIFICATIONS CERTIFIED
                 </span>
               </div>
 
@@ -118,7 +118,7 @@ export const InteractiveBento: React.FC<InteractiveBentoProps> = ({ onOpenConcie
 
             <div className="relative z-10 mt-8 pt-4 border-t border-[#00F0FF]/20 flex items-center justify-between">
               <div className="text-[11px] font-mono text-[#00F0FF]">
-                TELEMETRY: {engine === 'v12' ? '789 HP • 8,900 RPM' : engine === 'hybrid' ? '986 HP • 2.0S 0-60' : '518 HP • 9,000 RPM'}
+                SPECIFICATION: {engine === 'v12' ? '789 HP • 8,900 RPM' : engine === 'hybrid' ? '986 HP • 2.0S 0-60' : '518 HP • 9,000 RPM'}
               </div>
               <button
                 onClick={onOpenConcierge}
