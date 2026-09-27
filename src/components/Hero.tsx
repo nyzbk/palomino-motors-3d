@@ -1,65 +1,88 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Gauge, ChevronRight, Activity, Zap, ShieldCheck } from 'lucide-react';
+import React, { useEffect, useRef, useState, useTransition } from 'react';
+import { useScroll, useSpring, useTransform, motion } from 'framer-motion';
+import { ArrowUpRight, Compass, ShieldCheck, Sparkles } from 'lucide-react';
 
 interface HeroProps {
-  totalFrames?: number;
   onOpenConcierge: () => void;
 }
 
-export const Hero: React.FC<HeroProps> = ({
-  totalFrames = 60,
-  onOpenConcierge
-}) => {
+const TOTAL_FRAMES = 240;
+
+export const Hero: React.FC<HeroProps> = ({ onOpenConcierge }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imagesRef = useRef<HTMLImageElement[]>([]);
   const currentFrameRef = useRef<number>(1);
+  const [, startTransition] = useTransition();
 
-  const [, setCurrentFrame] = useState<number>(1);
-  const [scrollProgress, setScrollProgress] = useState<number>(0);
-  const [activeChapter, setActiveChapter] = useState<string>('Aerodynamic Profile & Front Splitter');
-  const [isLoaded, setIsLoaded] = useState<boolean>(false);
+  const [, setIsLoaded] = useState(false);
+  const [loadCount, setLoadCount] = useState(0);
 
+  // Jack Roberts spring physics: stiffness: 100, damping: 30
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ['start start', 'end end'],
+  });
+
+  const smoothProgress = useSpring(scrollYProgress, {
+    stiffness: 100,
+    damping: 30,
+    restDelta: 0.0001,
+  });
+
+  // Staged narrative typography opacities across 240 frames
+  const stage1Opacity = useTransform(smoothProgress, [0, 0.18, 0.26], [1, 1, 0]);
+  const stage1Y = useTransform(smoothProgress, [0, 0.22], [0, -35]);
+
+  const stage2Opacity = useTransform(smoothProgress, [0.26, 0.34, 0.46, 0.54], [0, 1, 1, 0]);
+  const stage2Y = useTransform(smoothProgress, [0.26, 0.34, 0.46, 0.54], [35, 0, 0, -35]);
+
+  const stage3Opacity = useTransform(smoothProgress, [0.54, 0.62, 0.74, 0.82], [0, 1, 1, 0]);
+  const stage3Y = useTransform(smoothProgress, [0.54, 0.62, 0.74, 0.82], [35, 0, 0, -35]);
+
+  const stage4Opacity = useTransform(smoothProgress, [0.82, 0.90, 1], [0, 1, 1]);
+  const stage4Y = useTransform(smoothProgress, [0.82, 0.90], [35, 0]);
+
+  // Frame 1 immediate load + progressive background batching
   useEffect(() => {
-    const total = totalFrames;
-    const imgs: HTMLImageElement[] = new Array(total);
+    const imgs: HTMLImageElement[] = new Array(TOTAL_FRAMES);
 
-    // 1. Immediately fetch Frame 1 (<100ms first paint)
     const firstImg = new Image();
-    firstImg.src = `/frames/frame_0001.webp?v=fast-v2`;
+    firstImg.src = `/frames/frame_0001.webp?v=240`;
     firstImg.onload = () => {
       imgs[0] = firstImg;
       setIsLoaded(true);
+      setLoadCount(1);
       renderFrame(1);
 
-      // 2. Progressive non-blocking preload for frames 2..total in small smooth batches
-      let nextIdx = 2;
-      const loadNextBatch = () => {
-        const batchSize = 6;
-        for (let b = 0; b < batchSize && nextIdx <= total; b++, nextIdx++) {
-          const idx = nextIdx;
+      let nextIndex = 2;
+      const loadBatch = () => {
+        const batchSize = 10;
+        for (let i = 0; i < batchSize && nextIndex <= TOTAL_FRAMES; i++, nextIndex++) {
+          const idx = nextIndex;
           const img = new Image();
-          const frameStr = String(idx).padStart(4, '0');
-          img.src = `/frames/frame_${frameStr}.webp?v=fast-v2`;
+          const frameNum = String(idx).padStart(4, '0');
+          img.src = `/frames/frame_${frameNum}.webp?v=240`;
           img.onload = () => {
+            imgs[idx - 1] = img;
+            setLoadCount((prev) => prev + 1);
             if (currentFrameRef.current === idx) {
               renderFrame(idx);
             }
           };
           imgs[idx - 1] = img;
         }
-        if (nextIdx <= total) {
-          setTimeout(loadNextBatch, 15);
+        if (nextIndex <= TOTAL_FRAMES) {
+          setTimeout(loadBatch, 15);
         }
       };
-      loadNextBatch();
-    };
-    firstImg.onerror = () => {
-      setIsLoaded(true);
+      loadBatch();
     };
     imgs[0] = firstImg;
-    imagesRef.current = imgs;}, [totalFrames]);
+    imagesRef.current = imgs;
+  }, []);
 
+  // Canvas COVER rendering algorithm
   const renderFrame = (frameIndex: number) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -68,215 +91,214 @@ export const Hero: React.FC<HeroProps> = ({
 
     let img = imagesRef.current[frameIndex - 1];
     if (!img || !img.complete || img.naturalWidth === 0) {
-      for (let offset = 1; offset < totalFrames; offset++) {
-        const prev = imagesRef.current[frameIndex - 1 - offset];
-        if (prev && prev.complete && prev.naturalWidth > 0) {
-          img = prev;
-          break;
-        }
-        const next = imagesRef.current[frameIndex - 1 + offset];
-        if (next && next.complete && next.naturalWidth > 0) {
-          img = next;
+      for (let i = frameIndex - 1; i >= 0; i--) {
+        if (imagesRef.current[i] && imagesRef.current[i].complete && imagesRef.current[i].naturalWidth > 0) {
+          img = imagesRef.current[i];
           break;
         }
       }
     }
-    if (img && img.complete) {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      const w = canvas.clientWidth;
-      const h = canvas.clientHeight;
+    if (!img || !img.complete || img.naturalWidth === 0) return;
 
-      if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) {
-        canvas.width = Math.round(w * dpr);
-        canvas.height = Math.round(h * dpr);
-      }
+    const dpr = window.devicePixelRatio || 1;
+    const cw = canvas.clientWidth;
+    const ch = canvas.clientHeight;
 
-      ctx.save();
-      ctx.scale(dpr, dpr);
-
-      const imgAspect = 16 / 9;
-      const screenAspect = w / h;
-
-      let drawW = w;
-      let drawH = h;
-      let offsetX = 0;
-      let offsetY = 0;
-
-      if (screenAspect > imgAspect) {
-        drawW = w;
-        drawH = w / imgAspect;
-        offsetY = (h - drawH) / 2;
-      } else {
-        drawH = h;
-        drawW = h * imgAspect;
-        offsetX = (w - drawW) / 2;
-      }
-
-      ctx.drawImage(img, offsetX, offsetY, drawW, drawH);
-
-      // Dark carbon vignette overlay
-      const grad = ctx.createLinearGradient(0, 0, 0, h);
-      grad.addColorStop(0, 'rgba(5, 5, 7, 0.65)');
-      grad.addColorStop(0.4, 'rgba(5, 5, 7, 0.15)');
-      grad.addColorStop(1, 'rgba(5, 5, 7, 0.90)');
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, w, h);
-
-      ctx.restore();
+    if (canvas.width !== cw * dpr || canvas.height !== ch * dpr) {
+      canvas.width = cw * dpr;
+      canvas.height = ch * dpr;
     }
+
+    ctx.save();
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, cw, ch);
+
+    const imgRatio = img.naturalWidth / img.naturalHeight;
+    const canvasRatio = cw / ch;
+
+    let drawW: number;
+    let drawH: number;
+    let offsetX: number;
+    let offsetY: number;
+
+    if (canvasRatio > imgRatio) {
+      drawW = cw;
+      drawH = cw / imgRatio;
+      offsetX = 0;
+      offsetY = (ch - drawH) / 2;
+    } else {
+      drawW = ch * imgRatio;
+      drawH = ch;
+      offsetX = (cw - drawW) / 2;
+      offsetY = 0;
+    }
+
+    ctx.drawImage(img, offsetX, offsetY, drawW, drawH);
+    ctx.restore();
   };
 
+  // Sync canvas with spring physics
   useEffect(() => {
-    const handleScroll = () => {
-      const container = containerRef.current;
-      if (!container) return;
-
-      const rect = container.getBoundingClientRect();
-      const scrollableDistance = rect.height - window.innerHeight;
-      const currentScroll = -rect.top;
-
-      let progress = currentScroll / scrollableDistance;
-      progress = Math.max(0, Math.min(1, progress));
-      setScrollProgress(progress);
-
-      const frameNumber = Math.max(1, Math.min(totalFrames, Math.floor(progress * (totalFrames - 1)) + 1));
-      currentFrameRef.current = frameNumber;
-      setCurrentFrame(frameNumber);
-      renderFrame(frameNumber);
-
-      if (progress < 0.33) {
-        setActiveChapter('Aerodynamic Profile & Carbon Splitter');
-      } else if (progress < 0.66) {
-        setActiveChapter('Cockpit Ergonomics & Steering Telemetry');
-      } else if (progress < 0.88) {
-        setActiveChapter('V8/V12 Powertrain & Active Aero');
-      } else {
-        setActiveChapter('Rear Diffuser & Titanium Exhaust');
+    const unsubscribe = smoothProgress.on('change', (v) => {
+      const targetFrame = Math.min(
+        TOTAL_FRAMES,
+        Math.max(1, Math.floor(v * (TOTAL_FRAMES - 1)) + 1)
+      );
+      if (targetFrame !== currentFrameRef.current) {
+        currentFrameRef.current = targetFrame;
+        startTransition(() => {
+          renderFrame(targetFrame);
+        });
       }
+    });
+
+    return () => unsubscribe();
+  }, [smoothProgress]);
+
+  // Window resize handler
+  useEffect(() => {
+    const handleResize = () => {
+      renderFrame(currentFrameRef.current);
     };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [totalFrames]);
-
-  const rpmValue = Math.round(1500 + scrollProgress * 7000);
-  const speedMph = Math.round(scrollProgress * 205);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   return (
-    <section id="telemetry-tour" ref={containerRef} className="relative h-[450vh] bg-[#050507]">
-      <div className="sticky top-0 h-screen w-full overflow-hidden flex flex-col justify-between p-4 sm:p-8">
-        {/* Canvas Background */}
+    <div ref={containerRef} className="relative h-[400vh] bg-[#0A0B0E] text-[#F2F5F8]">
+      {/* Sticky 100vh Fullscreen Viewport */}
+      <div className="sticky top-0 h-screen w-full overflow-hidden flex flex-col justify-between">
+        {/* Background Neural Canvas */}
         <canvas
           ref={canvasRef}
-          className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+          className="absolute inset-0 w-full h-full object-cover z-0 pointer-events-none"
         />
 
-        {/* HUD Top Corner Brackets */}
-        <div className="relative z-10 w-full flex items-center justify-between pt-16 sm:pt-20 font-mono text-[10px] text-neutral-400">
-          <div className="flex items-center gap-2 bg-[#09090b]/80 border border-neutral-800 px-3 py-1.5 backdrop-blur-md">
-            <span className="w-2 h-2 bg-rose-500 rounded-full animate-pulse" />
-            <span className="text-white font-bold">CHASSIS 360° TELEMETRY // DALLAS SHOWROOM</span>
+        {/* Cinematic Carbon Black & Cyan Telemetry Vignette */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0A0B0E]/95 via-[#0A0B0E]/40 to-[#0A0B0E]/80 pointer-events-none z-10" />
+
+        {/* 12-Column Architectural Hairline Grid Overlay */}
+        <div className="absolute inset-0 pointer-events-none z-15 opacity-[0.08] grid grid-cols-6 md:grid-cols-12 max-w-[1600px] mx-auto px-6">
+          {Array.from({ length: 12 }).map((_, i) => (
+            <div key={i} className="border-r border-[#00F0FF] h-full" />
+          ))}
+        </div>
+
+        {/* Top Telemetry Header */}
+        <div className="relative z-20 pt-24 px-6 md:px-12 flex justify-between items-start max-w-[1600px] mx-auto w-full">
+          <div className="flex items-center gap-3">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#00F0FF]/15 border border-[#00F0FF]/30 text-[#00F0FF] text-[11px] font-mono tracking-widest uppercase">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#00F0FF] animate-ping" />
+              DALLAS EXOTIC SHOWROOM
+            </span>
+            <span className="hidden md:inline text-[11px] font-mono text-[#6B7280]">
+              10400 N CENTRAL EXPY • DALLAS, TX
+            </span>
           </div>
 
-          <div className="hidden sm:flex items-center gap-4 bg-[#09090b]/80 border border-neutral-800 px-3 py-1.5 backdrop-blur-md">
-            <span>RPM: <strong className="text-rose-500">{rpmValue}</strong></span>
-            <span>SPEED: <strong className="text-white">{speedMph} MPH</strong></span>
-            <span>SYSTEM: {isLoaded ? <strong className="text-emerald-400">TELEMETRY READY</strong> : <strong className="text-amber-400">INITIALIZING...</strong>}</span>
+          <div className="text-right font-mono text-[11px] text-[#6B7280]">
+            <div className="text-[#00F0FF] font-semibold">240-FRAME DYNO SCAN</div>
+            <div>BUFFER: {loadCount}/{TOTAL_FRAMES} FRAMES ({Math.round((loadCount / TOTAL_FRAMES) * 100)}%)</div>
           </div>
         </div>
 
-        {/* Main Hero Overlay (Sharp Automotive Layout) */}
-        <div className="relative z-10 my-auto max-w-4xl space-y-6 pointer-events-none">
-          <div className="space-y-4 pointer-events-auto">
-            <div className="inline-flex items-center gap-2 bg-rose-950/70 border border-rose-600/50 px-3 py-1 text-rose-400 font-mono text-xs font-bold uppercase tracking-wider skew-badge">
-              <Zap className="w-3.5 h-3.5 unskew" />
-              <span className="unskew">Verified Exotic Supercars · Dallas, TX</span>
+        {/* Center Dynamic Staged Narrative */}
+        <div className="relative z-20 px-6 md:px-12 max-w-[1600px] mx-auto w-full my-auto pointer-events-none">
+          {/* Stage 1: Dallas Exotic & Supercar Showroom */}
+          <motion.div
+            style={{ opacity: stage1Opacity, y: stage1Y }}
+            className="max-w-4xl"
+          >
+            <div className="text-[12px] font-mono tracking-[0.25em] text-[#00F0FF] uppercase mb-4 flex items-center gap-2">
+              <Sparkles className="w-3.5 h-3.5 text-[#00F0FF]" />
+              ESTABLISHED IN DALLAS • CURATED COLLECTOR INVENTORY
             </div>
-
-            <h1 className="font-mono text-4xl sm:text-6xl lg:text-7xl font-black text-white tracking-tight uppercase leading-[0.95]">
-              Uncompromising <br />
-              <span className="text-rose-500 underline decoration-rose-500/40">Exotic Provenance</span>
+            <h1 className="font-['Syncopate',sans-serif] text-[40px] md:text-[72px] font-bold leading-[0.92] tracking-tight text-[#F2F5F8]">
+              WHERE HORSEPOWER MEETS COLLECTOR DISCIPLINE.
             </h1>
-
-            <p className="text-sm sm:text-base text-neutral-300 max-w-xl font-light leading-relaxed">
-              Ferrari, Lamborghini, McLaren, and Porsche. Hand-selected for collectors who demand verified mileage, zero undisclosed track wear, and seamless nationwide acquisition.
+            <p className="mt-6 text-[16px] md:text-[20px] text-[#8A95A5] max-w-2xl font-light leading-relaxed font-['Space_Grotesk',sans-serif]">
+              Dallas' premier destination for pre-owned Ferrari, Lamborghini, McLaren, Porsche GT, and Rolls-Royce. Clean Carfax titles, verified factory service history, and nationwide white-glove transport.
             </p>
+          </motion.div>
 
-            <div className="flex flex-wrap items-center gap-4 pt-2">
+          {/* Stage 2: Pre-Owned Hypercar & Exotic Inventory */}
+          <motion.div
+            style={{ opacity: stage2Opacity, y: stage2Y }}
+            className="max-w-3xl"
+          >
+            <div className="text-[12px] font-mono tracking-[0.25em] text-[#00F0FF] uppercase mb-4 flex items-center gap-2">
+              <Compass className="w-3.5 h-3.5 text-[#00F0FF]" />
+              RIGOROUS 150-POINT MECHANICAL AUDIT
+            </div>
+            <h2 className="font-['Syncopate',sans-serif] text-[36px] md:text-[64px] font-bold leading-[0.92] text-[#F2F5F8]">
+              ZERO FAULTS. TRACK TESTED.
+            </h2>
+            <p className="mt-6 text-[16px] md:text-[19px] text-[#8A95A5] font-light leading-relaxed font-['Space_Grotesk',sans-serif]">
+              Every vehicle undergoes full engine compression audits, carbon-ceramic rotor thickness analysis, paint-depth electronic gauge verification, and factory software diagnostics.
+            </p>
+          </motion.div>
+
+          {/* Stage 3: Enclosed White-Glove Nationwide Logistics */}
+          <motion.div
+            style={{ opacity: stage3Opacity, y: stage3Y }}
+            className="max-w-3xl"
+          >
+            <div className="text-[12px] font-mono tracking-[0.25em] text-[#00F0FF] uppercase mb-4 flex items-center gap-2">
+              <ShieldCheck className="w-3.5 h-3.5 text-[#00F0FF]" />
+              DOOR-TO-DOOR ENCLOSED DELIVERY
+            </div>
+            <h2 className="font-['Syncopate',sans-serif] text-[36px] md:text-[64px] font-bold leading-[0.92] text-[#F2F5F8]">
+              DELIVERED DIRECT TO YOUR CARRIAGE HOUSE.
+            </h2>
+            <p className="mt-6 text-[16px] md:text-[19px] text-[#8A95A5] font-light leading-relaxed font-['Space_Grotesk',sans-serif]">
+              Air-ride pneumatic trailers, climate-controlled cabins, and full comprehensive transit coverage anywhere across North America and private international ports.
+            </p>
+          </motion.div>
+
+          {/* Stage 4: Private Showroom Viewing & Consignment */}
+          <motion.div
+            style={{ opacity: stage4Opacity, y: stage4Y }}
+            className="max-w-3xl pointer-events-auto"
+          >
+            <div className="text-[12px] font-mono tracking-[0.25em] text-[#00F0FF] uppercase mb-4">
+              PRIVATE CONCIERGE APPOINTMENTS
+            </div>
+            <h2 className="font-['Syncopate',sans-serif] text-[36px] md:text-[64px] font-bold leading-[0.92] text-[#F2F5F8]">
+              ACQUIRE YOUR NEXT EXOTIC.
+            </h2>
+            <p className="mt-6 text-[16px] md:text-[19px] text-[#8A95A5] font-light leading-relaxed font-['Space_Grotesk',sans-serif]">
+              Private showroom appointments with Moe Talebi and Sam Moghadam. Outright cash purchases, competitive collector consignment, and bespoke leasing programs.
+            </p>
+            <div className="mt-8 flex flex-wrap items-center gap-4">
               <button
                 onClick={onOpenConcierge}
-                className="skew-badge px-8 py-3.5 bg-rose-600 hover:bg-rose-500 text-white font-mono text-xs font-bold uppercase tracking-widest transition-all shadow-xl racing-red-glow flex items-center gap-2"
+                className="group relative inline-flex items-center gap-3 px-8 py-4 rounded-xl bg-[#00F0FF] text-[#0A0B0E] font-bold text-[14px] uppercase tracking-wider transition-all duration-300 hover:bg-[#33f3ff] shadow-lg shadow-[#00F0FF]/25 hover:scale-[1.02] active:scale-[0.98]"
               >
-                <span className="unskew flex items-center gap-2">
-                  <span>Schedule Private Inspection</span>
-                  <ChevronRight className="w-4 h-4" />
-                </span>
+                <span>Request Private Viewing</span>
+                <ArrowUpRight className="w-4 h-4 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
               </button>
-
               <a
-                href="#showroom"
-                className="px-6 py-3.5 border border-neutral-700 bg-neutral-900/80 backdrop-blur-md text-white font-mono text-xs uppercase tracking-wider hover:border-rose-500 transition-colors"
+                href="tel:2148790111"
+                className="px-6 py-4 rounded-xl border border-[#00F0FF]/30 text-[#F2F5F8] font-mono text-[13px] hover:bg-[#00F0FF]/10 transition-colors"
               >
-                Inspect Vault Inventory
+                (214) 879-0111
               </a>
             </div>
-          </div>
+          </motion.div>
         </div>
 
-        {/* Telemetry Gauge HUD Bar (Bottom) */}
-        <div className="relative z-10 w-full pointer-events-auto">
-          <div className="bg-[#09090b]/90 border border-neutral-800 p-4 sm:p-5 flex flex-col md:flex-row items-center justify-between gap-4 backdrop-blur-md">
-            {/* Left Chapter Monitor */}
-            <div className="flex items-center gap-3 w-full md:w-auto">
-              <div className="w-8 h-8 bg-rose-600/20 border border-rose-500/30 flex items-center justify-center text-rose-500 shrink-0">
-                <Gauge className="w-4 h-4" />
-              </div>
-              <div className="font-mono">
-                <div className="text-[10px] text-neutral-400 uppercase tracking-widest flex items-center gap-1.5">
-                  <Activity className="w-3 h-3 text-rose-500" />
-                  <span>360° Walkaround Orbit</span>
-                </div>
-                <div className="text-xs sm:text-sm font-bold text-white uppercase mt-0.5">
-                  {activeChapter}
-                </div>
-              </div>
-            </div>
-
-            {/* Center Rev Progress Bar */}
-            <div className="w-full md:w-72 space-y-1">
-              <div className="flex justify-between font-mono text-[10px] text-neutral-400 uppercase">
-                <span>Walkaround Progress</span>
-                <span className="text-rose-500 font-bold">{Math.round(scrollProgress * 100)}%</span>
-              </div>
-              <div className="h-2 bg-neutral-800 overflow-hidden flex gap-0.5">
-                {[...Array(20)].map((_, i) => {
-                  const active = i / 20 <= scrollProgress;
-                  return (
-                    <div
-                      key={i}
-                      className={`flex-1 transition-colors ${
-                        active
-                          ? i > 15 ? 'bg-rose-500' : 'bg-rose-600'
-                          : 'bg-neutral-800'
-                      }`}
-                    />
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Right Badge */}
-            <div className="flex items-center gap-4 font-mono text-xs text-neutral-400">
-              <span className="flex items-center gap-1.5 text-white">
-                <ShieldCheck className="w-4 h-4 text-rose-500" />
-                <span>30-Yr Dallas Reputation</span>
-              </span>
-              <span className="text-neutral-500">|</span>
-              <span className="text-[11px] text-rose-400">Scroll to rotate</span>
-            </div>
+        {/* Bottom Status Ribbon */}
+        <div className="relative z-20 pb-8 px-6 md:px-12 max-w-[1600px] mx-auto w-full flex justify-between items-end border-t border-[#00F0FF]/15 pt-4 text-[12px] font-mono text-[#6B7280]">
+          <div className="flex items-center gap-6">
+            <span className="text-[#00F0FF]">VAULT SHOWROOM OPEN</span>
+            <span className="hidden md:inline">10400 N CENTRAL EXPY • DALLAS, TEXAS</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span>SCROLL TO TRAVERSE SHOWROOM</span>
+            <span className="animate-bounce">↓</span>
           </div>
         </div>
       </div>
-    </section>
+    </div>
   );
 };
